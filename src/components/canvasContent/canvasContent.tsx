@@ -1,20 +1,72 @@
 import React, { useEffect, useState } from "react";
 import styles from "./canvasContent.module.less";
 import { fabric } from "fabric";
-import { Rect, Canvas, Circle } from "fabric/fabric-impl";
+import { Canvas } from "fabric/fabric-impl";
+import { FilterItem } from "../../App";
+import assetImg from "../../assets/images/880.jpeg";
 
 interface IProps {
   activeKey: string;
+  filters: FilterItem[];
 }
 
 function CanvasContent(props: IProps): JSX.Element {
-  const { activeKey } = props;
+  const { activeKey, filters } = props;
   const [canvas, setCanvas] = useState<Canvas>();
 
   useEffect(() => {
     const canvasDom = new fabric.Canvas("canvas");
     setCanvas(canvasDom);
   }, []);
+
+  /**
+   * 滤镜
+   */
+  useEffect(() => {
+    if (!canvas || !canvas.getActiveObject()) {
+      return;
+    }
+    fabric.filterBackend = new fabric.Canvas2dFilterBackend();
+    fabric.Object.prototype.transparentCorners = false;
+    const f: any = fabric.Image.filters;
+    const obj: any = canvas.getActiveObject();
+    filters.forEach((item, index) => {
+      switch (item.type) {
+        case "brightness":
+          obj.filters[index] = new f.Brightness({
+            brightness: item.value,
+          });
+          break;
+        case "contrast":
+          obj.filters[index] = new f.Contrast({
+            contrast: item.value,
+          });
+          break;
+        case "hue":
+          obj.filters[index] = new f.HueRotation({
+            rotation: item.value,
+          });
+          break;
+        case "vibrance":
+          obj.filters[index] = new f.Vibrance({
+            vibrance: item.value,
+          });
+          break;
+        case "noise":
+          obj.filters[index] = new f.Noise({
+            noise: item.value,
+          });
+          break;
+        case "blur":
+          obj.filters[index] = new f.Blur({
+            blur: item.value,
+          });
+          break;
+      }
+      obj.applyFilters();
+      canvas.renderAll();
+    });
+  }, [filters]);
 
   useEffect(() => {
     if (!canvas) {
@@ -54,13 +106,13 @@ function CanvasContent(props: IProps): JSX.Element {
       return;
     } else if (activeKey === "6") {
       fabric.Image.fromURL(
-        "http://pic.616pic.com/bg_w1180/00/06/60/FHomLv5f5v.jpg!/fw/880",
+        assetImg,
         img => {
           img.set({
             width: 800,
             height: 1232,
-            scaleX: canvas.getWidth() / (img.width || canvas.getWidth()),
-            scaleY: canvas.getHeight() / (img.height || canvas.getHeight()), 
+            scaleX: 0.3,
+            scaleY: 0.2,
           });
           canvas.add(img);
         },
@@ -100,6 +152,8 @@ function CanvasContent(props: IProps): JSX.Element {
       return;
     } else if (activeKey === "11") {
       canvas.remove(graph);
+      return;
+    } else if (activeKey === "12") {
       return;
     }
     canvas.isDrawingMode = false;
