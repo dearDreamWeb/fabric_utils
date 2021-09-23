@@ -40,13 +40,77 @@ function CanvasContent(props: IProps): JSX.Element {
     let originX = 0;
     let originY = 0;
     let radius = 10;
-
+    // 折线使用
+    let startX = 0;
+    let startY = 0;
+    let endX = 0;
+    let endY = 0;
+    let count = 0;
+    if (activeKey === "4") {
+      canvas.isDrawingMode = true;
+      canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+      canvas.freeDrawingBrush.color = "#000000";
+      canvas.freeDrawingBrush.width = 4;
+      return;
+    } else if (activeKey === "6") {
+      fabric.Image.fromURL(
+        "http://pic.616pic.com/bg_w1180/00/06/60/FHomLv5f5v.jpg!/fw/880",
+        img => {
+          img.set({
+            width: 800,
+            height: 1232,
+            scaleX: canvas.getWidth() / (img.width || canvas.getWidth()),
+            scaleY: canvas.getHeight() / (img.height || canvas.getHeight()), 
+          });
+          canvas.add(img);
+        },
+        {}
+      );
+      return;
+    } else if (activeKey === "7") {
+      canvas.clear();
+      return;
+    } else if (activeKey === "8") {
+      canvas.isDrawingMode = true;
+      canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+      canvas.freeDrawingBrush.color = "#fff";
+      canvas.freeDrawingBrush.width = 10;
+      return;
+    } else if (activeKey === "9") {
+      if (!canvas.getActiveObject()) {
+        return;
+      }
+      if (canvas.getActiveObject().type !== "activeSelection") {
+        return;
+      }
+      const activeObject: any = canvas.getActiveObject();
+      activeObject.toGroup();
+      canvas.requestRenderAll();
+      return;
+    } else if (activeKey === "10") {
+      if (!canvas.getActiveObject()) {
+        return;
+      }
+      if (canvas.getActiveObject().type !== "group") {
+        return;
+      }
+      const activeObject: any = canvas.getActiveObject();
+      activeObject.toActiveSelection();
+      canvas.requestRenderAll();
+      return;
+    } else if (activeKey === "11") {
+      canvas.remove(graph);
+      return;
+    }
+    canvas.isDrawingMode = false;
     canvas.on("mouse:down", function (o) {
       if (canvas.getActiveObject()) {
         isDown = false;
         return;
       }
+      const pointer = canvas.getPointer(o.e);
       const fillColor = colorArr[Math.floor(Math.random() * colorArr.length)];
+      canvas.selection = true;
       switch (activeKey) {
         case "0":
           graph = new fabric.Rect({
@@ -65,12 +129,28 @@ function CanvasContent(props: IProps): JSX.Element {
           break;
         case "2":
           graph = new fabric.Line();
+          canvas.selection = false;
+          break;
+        case "3":
+          graph = new fabric.Line();
+          canvas.selection = false;
+          if (count === 0) {
+            startX = pointer.x;
+            startY = pointer.y;
+          } else {
+            endX = pointer.x;
+            endY = pointer.y;
+          }
+          break;
+        case "5":
+          graph = new fabric.IText("默认文案", { editable: true });
           break;
       }
-      const pointer = canvas.getPointer(o.e);
+
       isDown = true;
       originX = pointer.x;
       originY = pointer.y;
+
       radius = 10;
       graph.set({ top: originY, left: originX });
     });
@@ -100,28 +180,40 @@ function CanvasContent(props: IProps): JSX.Element {
         case "2":
           const fillColor =
             colorArr[Math.floor(Math.random() * colorArr.length)];
-          const lineX = originX > pointer.x ? Math.abs(pointer.x) : originX;
-          graph = new fabric.Line(
-            [
-              lineX,
-              Math.abs(pointer.y),
-              lineX + Math.abs(originX - pointer.x),
-              Math.abs(pointer.y),
-            ],
-            {
-              fill: fillColor,
-              stroke: fillColor,
-            }
-          );
+          graph = new fabric.Line([originX, originY, pointer.x, pointer.y], {
+            fill: fillColor,
+            stroke: fillColor,
+            selectable: false,
+          });
           break;
       }
-
       canvas.renderAll();
     });
 
     canvas.on("mouse:up", function (o) {
-      isDown = false;
-      canvas.add(graph);
+      if (activeKey === "3") {
+        const pointer = canvas.getPointer(o.e);
+        const fillColor = colorArr[Math.floor(Math.random() * colorArr.length)];
+        graph = new fabric.Line([startX, startY, endX, endY], {
+          fill: fillColor,
+          stroke: fillColor,
+          selectable: false,
+        });
+
+        canvas.renderAll();
+        startX = pointer.x;
+        startY = pointer.y;
+        count++;
+        isDown = false;
+        if (count > 1) {
+          canvas.add(graph);
+        }
+      } else {
+        // canvas.selection = false;
+        // graph.set("selectable", false);
+        isDown = false;
+        canvas.add(graph);
+      }
     });
   }, [canvas, activeKey]);
 

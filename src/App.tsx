@@ -11,6 +11,9 @@ import fontSvg from "./assets/icons/font.svg";
 import imgSvg from "./assets/icons/img.svg";
 import broom from "./assets/icons/broom.svg";
 import eraser from "./assets/icons/eraser.svg";
+import group from "./assets/icons/group.svg";
+import unGroup from "./assets/icons/unGroup.svg";
+import select from "./assets/icons/select.svg";
 
 const navList = [
   {
@@ -48,6 +51,18 @@ const navList = [
   {
     key: "8",
     icon: eraser,
+  },
+  {
+    key: "9",
+    icon: group,
+  },
+  {
+    key: "10",
+    icon: unGroup,
+  },
+  {
+    key: "11",
+    icon: select,
   },
 ];
 
